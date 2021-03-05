@@ -8,7 +8,7 @@ from inspect import stack
 
 File2Commands = {
     "1_extraction": "feature_extractor",
-    "2_exaustive_matching": "exhaustive_matcher",
+    "2_exhaustive_matcher": "exhaustive_matcher",
     "2_1_spatial_matcher": "spatial_matcher",
     "2_2_transitive_matcher": "transitive_matcher",
     "3_mapper": "mapper",
