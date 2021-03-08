@@ -102,6 +102,7 @@ class Reconstructor:
     @staticmethod
     def execute_job(source: Path, config: ReconstructionConfig):
         task = source.name
+        print("CURRENTLY @ ", task)
         if task == "3_mapper":
             CreateDirectory(config.sparse_model_path_mapper_out)
         elif task == "4_bundle_adjustment":
