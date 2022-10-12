@@ -1,1 +1,1 @@
-python app.py --wdir "/home/felix/pointclouds/_working/EG-ICE2019/schaeringer2018/DensityConfigs/D1" --confdir "/home/felix/dev/ColmapAutomate/tconfig" --projdir "/home/felix/pointclouds/_working/EG-ICE2019/schaeringer2018"
+python app.py --wdir <work_dir> --confdir <config_dir> --projdir <project_dir>
