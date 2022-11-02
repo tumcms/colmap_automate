@@ -16,6 +16,7 @@ File2Commands = {
     "2_2_transitive_matcher": "transitive_matcher",
     "3_mapper": "mapper",
     "4_bundle_adjustment": "bundle_adjuster",
+    "4_1_rig_bundle_adjuster": "rig_bundle_adjuster",
     "5_model_aligner": "model_aligner",
     "6_image_undistorter": "image_undistorter",
     "7_patch_match": "patch_match_stereo",
@@ -32,7 +33,7 @@ class ReconstructionEncoder(json.JSONEncoder):
 
 class ReconstructionConfig:
     def __init__(self, database_path, image_path, sparse_model_path, dense_model_path, ply_output,
-                 image_global_list, logging_path, min_depth, max_depth, gps_available=False):
+                 image_global_list, logging_path, min_depth, max_depth, match_list_path, rig_config_path, gps_available=False, ):
         self.gps_available = gps_available
         self.database_path = Path(database_path)
         self.image_path = Path(image_path)
@@ -42,11 +43,13 @@ class ReconstructionConfig:
         self.sparse_model_path_mapper_out = self.sparse_model_path / "tmp"
         self.sparse_model_path_ba_in = self.sparse_model_path / "tmp" / "0"
         self.sparse_model_path_ba_out = self.sparse_model_path / "ba" if image_global_list else self.sparse_model_path
+        self.rig_config_path = Path(rig_config_path)
         self.image_global_list = Path(image_global_list)
         self.logging_path = Path(logging_path)
         self.min_depth = min_depth
         self.max_depth = max_depth
         self.force_overwrite = False
+        self.match_list_path = match_list_path
 
     def save(self, path):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -61,23 +64,25 @@ class ReconstructionConfig:
 
     # previously CreateStandardConfig
     @staticmethod
-    def default_config(root_dir, image_path="", database_path="", logging_path="", min_depth=-1, max_depth=-1):
+    def default_config(root_dir, image_path="", database_path="", sparse_path="", dense_path="", logging_path="",  min_depth=-1, max_depth=-1):
         root_dir = Path(root_dir)
         db_path = database_path if database_path else root_dir / "database.db"
         image_path = image_path if image_path else root_dir / "images"
-        sparse_path = root_dir / "sparse"
-        dense_path = root_dir / "dense"
+        sparse_path = sparse_path if sparse_path else root_dir / "sparse"
+        dense_path = dense_path if dense_path else root_dir / "dense"
         ply_output = Path(root_dir, root_dir.name + ".ply")
         logging_path = logging_path if logging_path else root_dir / "log"
+        match_list_path = ""
         return ReconstructionConfig(db_path, image_path, sparse_path, dense_path, ply_output, "",
-                                    logging_path, min_depth, max_depth)
+                                    logging_path, min_depth, max_depth, match_list_path, "")
 
     # previously FromDict
     @classmethod
     def from_dict(cls, data):
         _class = cls(data["database_path"], data["image_path"], data["sparse_model_path"],
                      data["dense_model_path"], data["ply_output_path"], data["image_global_list"],
-                     data["logging_path"], data["min_depth"], data["max_depth"], data["gps_available"])
+                     data["logging_path"], data["min_depth"], data["max_depth"], data["match_list_path"],
+                     data["rig_config_path"], data["gps_available"])
         _class.__dict__ = data
         return _class
 
@@ -121,6 +126,8 @@ class Reconstructor:
                                     sparse_model_path=config.sparse_model_path,
                                     dense_model_path=config.dense_model_path,
                                     ply_output_path=config.ply_output_path,
+                                    match_list_path=config.match_list_path,
+                                    rig_config_path=config.rig_config_path,
                                     min_depth=-1,
                                     max_depth=-1)
 
@@ -134,7 +141,7 @@ class Reconstructor:
         task = source.name
         if task == "3_mapper":
             CreateDirectory(config.sparse_model_path_mapper_out)
-        elif task == "4_bundle_adjustment":
+        elif task == "4_bundle_adjustment" or task == "4_1_rig_bundle_adjuster":
             CreateDirectory(config.sparse_model_path_ba_out)
         elif task == "5_model_aligner":
             CreateDirectory(config.sparse_model_path)
