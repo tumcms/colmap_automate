@@ -33,7 +33,7 @@ class ReconstructionEncoder(json.JSONEncoder):
 
 class ReconstructionConfig:
     def __init__(self, database_path, image_path, sparse_model_path, dense_model_path, ply_output,
-                 image_global_list, logging_path, min_depth, max_depth, match_list_path, rig_config_path, gps_available=False, ):
+                 image_global_list, logging_path, min_depth, max_depth, match_list_path, rig_config_path, gps_available=False):
         self.gps_available = gps_available
         self.database_path = Path(database_path)
         self.image_path = Path(image_path)
